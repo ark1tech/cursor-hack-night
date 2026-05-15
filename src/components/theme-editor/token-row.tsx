@@ -12,6 +12,7 @@ type TokenRowProps = Readonly<{
 type SelectOption = Readonly<{
   label: string;
   value: string;
+  pickerValue?: `#${string}`;
 }>;
 
 type SliderConfig = Readonly<{
@@ -22,22 +23,22 @@ type SliderConfig = Readonly<{
 }>;
 
 const COLOR_OPTIONS = [
-  { label: "White", value: "oklch(1 0 0)" },
-  { label: "Near white", value: "oklch(0.985 0 0)" },
-  { label: "Subtle gray", value: "oklch(0.97 0 0)" },
-  { label: "Light gray", value: "oklch(0.922 0 0)" },
-  { label: "Mid gray", value: "oklch(0.556 0 0)" },
-  { label: "Dark gray", value: "oklch(0.269 0 0)" },
-  { label: "Almost black", value: "oklch(0.145 0 0)" },
-  { label: "Black", value: "#000000" },
-  { label: "Red", value: "oklch(0.577 0.245 27.325)" },
-  { label: "Orange", value: "oklch(0.705 0.213 47.604)" },
-  { label: "Amber", value: "oklch(0.769 0.188 70.08)" },
-  { label: "Green", value: "oklch(0.723 0.219 149.579)" },
-  { label: "Cyan", value: "oklch(0.715 0.143 215.221)" },
-  { label: "Blue", value: "oklch(0.623 0.214 259.815)" },
-  { label: "Violet", value: "oklch(0.606 0.25 292.717)" },
-  { label: "Pink", value: "oklch(0.656 0.241 354.308)" },
+  { label: "White", value: "oklch(1 0 0)", pickerValue: "#ffffff" },
+  { label: "Near white", value: "oklch(0.985 0 0)", pickerValue: "#fafafa" },
+  { label: "Subtle gray", value: "oklch(0.97 0 0)", pickerValue: "#f5f5f5" },
+  { label: "Light gray", value: "oklch(0.922 0 0)", pickerValue: "#e5e5e5" },
+  { label: "Mid gray", value: "oklch(0.556 0 0)", pickerValue: "#737373" },
+  { label: "Dark gray", value: "oklch(0.269 0 0)", pickerValue: "#262626" },
+  { label: "Almost black", value: "oklch(0.145 0 0)", pickerValue: "#171717" },
+  { label: "Black", value: "#000000", pickerValue: "#000000" },
+  { label: "Red", value: "oklch(0.577 0.245 27.325)", pickerValue: "#dc2626" },
+  { label: "Orange", value: "oklch(0.705 0.213 47.604)", pickerValue: "#ea580c" },
+  { label: "Amber", value: "oklch(0.769 0.188 70.08)", pickerValue: "#d97706" },
+  { label: "Green", value: "oklch(0.723 0.219 149.579)", pickerValue: "#16a34a" },
+  { label: "Cyan", value: "oklch(0.715 0.143 215.221)", pickerValue: "#0891b2" },
+  { label: "Blue", value: "oklch(0.623 0.214 259.815)", pickerValue: "#2563eb" },
+  { label: "Violet", value: "oklch(0.606 0.25 292.717)", pickerValue: "#7c3aed" },
+  { label: "Pink", value: "oklch(0.656 0.241 354.308)", pickerValue: "#db2777" },
 ] as const satisfies readonly SelectOption[];
 
 const FONT_OPTIONS = [
@@ -146,10 +147,9 @@ function TokenControl({ token, value, onTokenChange }: TokenRowProps) {
 
   if (token.kind === "color" || token.name === "shadow-color") {
     return (
-      <SelectControl
+      <ColorControl
         label={token.label}
         value={value}
-        options={COLOR_OPTIONS}
         onValueChange={(nextValue) => onTokenChange(token.name, nextValue)}
       />
     );
@@ -162,6 +162,38 @@ function TokenControl({ token, value, onTokenChange }: TokenRowProps) {
       options={SHADOW_OPTIONS}
       onValueChange={(nextValue) => onTokenChange(token.name, nextValue)}
     />
+  );
+}
+
+function ColorControl({
+  label,
+  value,
+  onValueChange,
+}: Readonly<{
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+}>) {
+  function handlePickerChange(event: ChangeEvent<HTMLInputElement>): void {
+    onValueChange(event.target.value);
+  }
+
+  return (
+    <div className="flex gap-2">
+      <input
+        aria-label={`${label} color picker`}
+        className="h-8 w-12 shrink-0 cursor-pointer rounded-lg border border-input bg-background p-1 outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        type="color"
+        value={getPickerValue(value)}
+        onChange={handlePickerChange}
+      />
+      <SelectControl
+        label={label}
+        value={value}
+        options={COLOR_OPTIONS}
+        onValueChange={onValueChange}
+      />
+    </div>
   );
 }
 
@@ -256,4 +288,14 @@ function formatSliderValue(value: number, config: SliderConfig): string {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function getPickerValue(value: string): `#${string}` {
+  if (/^#[0-9a-f]{6}$/i.test(value)) {
+    return value as `#${string}`;
+  }
+
+  const matchingOption = COLOR_OPTIONS.find((option) => option.value === value);
+
+  return matchingOption?.pickerValue ?? "#000000";
 }

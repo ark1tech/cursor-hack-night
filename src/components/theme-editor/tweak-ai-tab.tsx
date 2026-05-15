@@ -234,158 +234,161 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
   }
 
   return (
-    <div className="tweak-chrome flex min-h-[calc(100vh-121px)] flex-col gap-6 p-6 lg:flex-row">
-      <Card className="w-full lg:max-w-md shrink-0">
-        <CardHeader>
-          <p className="tweak-label text-muted-foreground">Prompt workflow</p>
-          <CardTitle className="tweak-display flex items-center gap-2 text-3xl leading-tight">
-            <Wand2Icon className="size-5" />
-            Tweak AI
-          </CardTitle>
-          <CardDescription className="tweak-copy">
-            Describe your desired style. The assistant asks up to {MAX_GRILL_QUESTIONS} focused
-            questions, then proposes sparse token updates for light and dark modes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="ai-prompt">Style prompt</Label>
-            <Textarea
-              id="ai-prompt"
-              placeholder="e.g. Warm editorial SaaS with soft violet primary, generous radius, subtle shadows"
-              value={userPrompt}
-              onChange={(e) => setUserPrompt(e.target.value)}
-              disabled={phase !== "idle" && phase !== "questioning"}
-              className="min-h-[100px]"
-            />
-          </div>
+    <div className="tweak-chrome flex min-h-[calc(100vh-121px)] flex-col xl:flex-row">
+      <aside className="tweak-chrome flex min-h-0 w-full flex-col border-r bg-background xl:w-[420px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
+          <Card>
+            <CardHeader>
+              <p className="tweak-label text-muted-foreground">Prompt workflow</p>
+              <CardTitle className="tweak-display flex items-center gap-2 text-3xl leading-tight">
+                <Wand2Icon className="size-5" />
+                Tweak AI
+              </CardTitle>
+              <CardDescription className="tweak-copy">
+                Describe your desired style. The assistant asks up to {MAX_GRILL_QUESTIONS} focused
+                questions, then proposes sparse token updates for light and dark modes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ai-prompt">Style prompt</Label>
+                <Textarea
+                  id="ai-prompt"
+                  placeholder="e.g. Warm editorial SaaS with soft violet primary, generous radius, subtle shadows"
+                  value={userPrompt}
+                  onChange={(e) => setUserPrompt(e.target.value)}
+                  disabled={phase !== "idle" && phase !== "questioning"}
+                  className="min-h-[100px]"
+                />
+              </div>
 
-          {phase === "questioning" && currentQuestion?.question ? (
-            <div className="rounded-lg border bg-muted/40 p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                Question {questionCount + 1} of {MAX_GRILL_QUESTIONS}
-              </p>
-              <p className="mt-2 text-sm font-medium">{currentQuestion.question}</p>
-              {currentQuestion.recommendedAnswer ? (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Recommended: {currentQuestion.recommendedAnswer}
-                </p>
+              {phase === "questioning" && currentQuestion?.question ? (
+                <div className="rounded-lg border bg-muted/40 p-4">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Question {questionCount + 1} of {MAX_GRILL_QUESTIONS}
+                  </p>
+                  <p className="mt-2 text-sm font-medium">{currentQuestion.question}</p>
+                  {currentQuestion.recommendedAnswer ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Recommended: {currentQuestion.recommendedAnswer}
+                    </p>
+                  ) : null}
+                  <Textarea
+                    className="mt-3 min-h-[72px]"
+                    value={answerDraft}
+                    onChange={(e) => setAnswerDraft(e.target.value)}
+                    placeholder="Your answer..."
+                    disabled={loading}
+                  />
+                </div>
               ) : null}
-              <Textarea
-                className="mt-3 min-h-[72px]"
-                value={answerDraft}
-                onChange={(e) => setAnswerDraft(e.target.value)}
-                placeholder="Your answer..."
-                disabled={loading}
-              />
-            </div>
-          ) : null}
 
-          {qaHistory.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-medium text-muted-foreground">Clarifications</p>
-              {qaHistory.map((entry, i) => (
-                <div key={i} className="rounded-md border px-3 py-2 text-xs">
-                  <p className="font-medium">{entry.question}</p>
-                  <p className="mt-1 text-muted-foreground">{entry.answer}</p>
+              {qaHistory.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-medium text-muted-foreground">Clarifications</p>
+                  {qaHistory.map((entry, i) => (
+                    <div key={i} className="rounded-md border px-3 py-2 text-xs">
+                      <p className="font-medium">{entry.question}</p>
+                      <p className="mt-1 text-muted-foreground">{entry.answer}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : null}
+              ) : null}
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        </CardContent>
-        <CardFooter className="flex flex-wrap gap-2">
-          {phase === "idle" ? (
-            <Button onClick={handleStart} disabled={!canStart}>
-              {loading ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
-              Start
-            </Button>
-          ) : null}
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            </CardContent>
+            <CardFooter className="flex flex-wrap gap-2">
+              {phase === "idle" ? (
+                <Button onClick={handleStart} disabled={!canStart}>
+                  {loading ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
+                  Start
+                </Button>
+              ) : null}
 
-          {phase === "questioning" ? (
-            <>
-              <Button onClick={handleSubmitAnswer} disabled={loading}>
-                {loading ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <ArrowRightIcon data-icon="inline-start" />}
-                Continue
-              </Button>
-              <Button variant="outline" onClick={handleSkipToGenerate} disabled={loading}>
-                Generate now
-              </Button>
-            </>
-          ) : null}
+              {phase === "questioning" ? (
+                <>
+                  <Button onClick={handleSubmitAnswer} disabled={loading}>
+                    {loading ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <ArrowRightIcon data-icon="inline-start" />}
+                    Continue
+                  </Button>
+                  <Button variant="outline" onClick={handleSkipToGenerate} disabled={loading}>
+                    Generate now
+                  </Button>
+                </>
+              ) : null}
 
-          {phase === "generating" ? (
-            <Button disabled>
-              <Loader2Icon className="animate-spin" data-icon="inline-start" />
-              Generating tokens...
-            </Button>
-          ) : null}
+              {phase === "generating" ? (
+                <Button disabled>
+                  <Loader2Icon className="animate-spin" data-icon="inline-start" />
+                  Generating tokens...
+                </Button>
+              ) : null}
 
-          {phase === "preview" ? (
-            <>
-              <Button onClick={handleApply}>
-                <CheckIcon data-icon="inline-start" />
-                Apply to theme
-              </Button>
-              <Button variant="outline" onClick={handleDownloadDesignMd}>
-                <DownloadIcon data-icon="inline-start" />
-                DESIGN.md
-              </Button>
-              <Button variant="ghost" onClick={handleReset}>
-                Start over
-              </Button>
-            </>
-          ) : null}
+              {phase === "preview" ? (
+                <>
+                  <Button onClick={handleApply}>
+                    <CheckIcon data-icon="inline-start" />
+                    Apply to theme
+                  </Button>
+                  <Button variant="outline" onClick={handleDownloadDesignMd}>
+                    <DownloadIcon data-icon="inline-start" />
+                    DESIGN.md
+                  </Button>
+                  <Button variant="ghost" onClick={handleReset}>
+                    Start over
+                  </Button>
+                </>
+              ) : null}
 
-          {(phase === "questioning" || phase === "preview") && (
-            <Button variant="ghost" size="sm" onClick={handleReset} disabled={loading}>
-              Cancel
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+              {(phase === "questioning" || phase === "preview") && (
+                <Button variant="ghost" size="sm" onClick={handleReset} disabled={loading}>
+                  Cancel
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
 
-      <Card className="min-h-[320px] flex-1 overflow-hidden">
-        <CardHeader>
-          <p className="tweak-label text-muted-foreground">Live result</p>
-          <CardTitle className="tweak-display text-2xl leading-tight">Generated preview</CardTitle>
-          <CardDescription className="tweak-copy">
-            {phase === "preview" && patchResult
-              ? patchResult.intentSummary
-              : "The generated theme will render as an actual component preview here."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 p-0">
-          {phase === "preview" && patchResult ? (
-            <>
-              <div className="min-h-[680px] border-y">
-                <PreviewCanvas mode={previewMode} previewStyle={previewStyle} onModeChange={setPreviewMode} />
-              </div>
-              <div className="flex flex-col gap-4 p-6">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{changedTokenCount} tokens changed</Badge>
-                  <Badge variant="outline">{Math.round(patchResult.confidence * 100)}% confidence</Badge>
-                </div>
-                <Separator />
-                <TokenPatchList patch={patchResult} />
-                {previewState ? (
-                  <div className="mt-2">
-                    <p className="mb-2 text-xs font-medium text-muted-foreground">Generated CSS</p>
-                    <pre className="max-h-[280px] overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-[10px] leading-relaxed">
-                      {serializeThemeCss(previewState)}
-                    </pre>
+          <Card>
+            <CardHeader>
+              <p className="tweak-label text-muted-foreground">Live result</p>
+              <CardTitle className="tweak-display text-2xl leading-tight">Generated preview</CardTitle>
+              <CardDescription className="tweak-copy">
+                {phase === "preview" && patchResult
+                  ? patchResult.intentSummary
+                  : "Use the right panel to switch between component previews while Tweak AI works."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              {phase === "preview" && patchResult ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">{changedTokenCount} tokens changed</Badge>
+                    <Badge variant="outline">{Math.round(patchResult.confidence * 100)}% confidence</Badge>
                   </div>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <div className="flex min-h-[480px] flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
-              {phase === "generating" ? "Generating your token patch..." : "Waiting for your style prompt."}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  <Separator />
+                  <TokenPatchList patch={patchResult} />
+                  {previewState ? (
+                    <div className="mt-2">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">Generated CSS</p>
+                      <pre className="max-h-[280px] overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-[10px] leading-relaxed">
+                        {serializeThemeCss(previewState)}
+                      </pre>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {phase === "generating"
+                    ? "Generating your token patch. The preview will update when it is ready."
+                    : "The right panel is showing the current theme until AI generates a new one."}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </aside>
+
+      <PreviewCanvas mode={previewMode} previewStyle={previewStyle} onModeChange={setPreviewMode} />
     </div>
   );
 }
