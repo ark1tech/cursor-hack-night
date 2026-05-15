@@ -578,7 +578,7 @@ function ExerciseMinutesCard() {
       <CardContent>
         <ChartContainer config={EXERCISE_CHART_CONFIG} className="h-72 w-full">
           <RechartsLineChart data={EXERCISE_DATA} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid stroke="var(--border)" strokeOpacity={0.85} vertical={false} />
             <XAxis dataKey="day" tickLine={false} axisLine={false} tickFormatter={formatChartTick} />
             <YAxis hide domain={[0, 100]} />
             <Line dataKey="planned" type="monotone" stroke="var(--color-planned)" strokeWidth={2} dot={false} />

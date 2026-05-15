@@ -170,19 +170,38 @@ const MUTED_INK_ON_DARK_SURFACE = "oklch(0.78 0.02 260)"
 
 export function designTokensToPreviewStyle(tokens: DesignTokens): CSSProperties {
   const background = formatOklch(tokens.bg_l, tokens.bg_c, tokens.bg_h)
-  const primary = formatOklch(tokens.primary_l, tokens.primary_c, tokens.primary_h)
   const cardLightness = Math.min(0.99, Math.max(0.08, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.035 : 0.055)))
   const cardChroma = tokens.bg_c * 0.75
   const card = formatOklch(cardLightness, cardChroma, tokens.bg_h)
+  const primaryColor = ensureContrastColor(
+    ensureContrastColor(
+      {
+        lightness: tokens.primary_l,
+        chroma: Math.max(0.06, tokens.primary_c),
+        hue: tokens.primary_h,
+      },
+      tokens.bg_l,
+      tokens.bg_c,
+      tokens.bg_h
+    ),
+    cardLightness,
+    cardChroma,
+    tokens.bg_h
+  )
+  const primary = formatOklch(primaryColor.lightness, primaryColor.chroma, primaryColor.hue)
+  const spacing = normalizeSpacing(tokens.spacing)
   const mutedLightness = Math.min(0.96, Math.max(0.12, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.08 : 0.1)))
   const mutedChroma = tokens.bg_c * 0.5
   const muted = formatOklch(mutedLightness, mutedChroma, tokens.bg_h)
-  const border = formatOklch(Math.min(0.92, Math.max(0.22, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.14 : 0.16))), tokens.bg_c * 0.35, tokens.bg_h)
+  const borderColor = pickLineColorForSurface(cardLightness, tokens.bg_h, "subtle")
+  const strongLineColor = pickLineColorForSurface(cardLightness, tokens.bg_h, "strong")
+  const mediumLineColor = pickLineColorForSurface(cardLightness, tokens.bg_h, "medium")
+  const softLineColor = pickLineColorForSurface(cardLightness, tokens.bg_h, "soft")
 
   const foreground = pickInkForSurface(tokens.bg_l, tokens.bg_c, tokens.bg_h)
   const cardForeground = pickInkForSurface(cardLightness, cardChroma, tokens.bg_h)
   const secondaryForeground = pickInkForSurface(mutedLightness, mutedChroma, tokens.bg_h)
-  const primaryForeground = pickInkForSurface(tokens.primary_l, tokens.primary_c, tokens.primary_h)
+  const primaryForeground = pickInkForSurface(primaryColor.lightness, primaryColor.chroma, primaryColor.hue)
   const mutedForeground = pickMutedForegroundForSurface(mutedLightness, mutedChroma, tokens.bg_h)
 
   return {
@@ -200,16 +219,16 @@ export function designTokensToPreviewStyle(tokens: DesignTokens): CSSProperties 
     "--muted-foreground": mutedForeground,
     "--accent": muted,
     "--accent-foreground": secondaryForeground,
-    "--border": border,
-    "--input": border,
+    "--border": borderColor,
+    "--input": borderColor,
     "--ring": primary,
     "--chart-1": primary,
-    "--chart-2": formatOklch(tokens.primary_l, tokens.primary_c * 0.75, (tokens.primary_h + 45) % 360),
-    "--chart-3": formatOklch(tokens.primary_l, tokens.primary_c * 0.65, (tokens.primary_h + 95) % 360),
-    "--chart-4": formatOklch(tokens.primary_l, tokens.primary_c * 0.55, (tokens.primary_h + 150) % 360),
-    "--chart-5": formatOklch(tokens.primary_l, tokens.primary_c * 0.45, (tokens.primary_h + 210) % 360),
+    "--chart-2": mediumLineColor,
+    "--chart-3": strongLineColor,
+    "--chart-4": formatOklch(primaryColor.lightness, Math.max(0.08, primaryColor.chroma * 0.65), (primaryColor.hue + 110) % 360),
+    "--chart-5": softLineColor,
     "--radius": `${tokens.radius.toFixed(3)}rem`,
-    "--spacing": `${tokens.spacing.toFixed(3)}rem`,
+    "--spacing": `${spacing.toFixed(3)}rem`,
     "--font-sans": pickFontFamily(tokens),
     "--font-serif": 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
     "--font-mono":
@@ -223,6 +242,67 @@ export function designTokensToPreviewStyle(tokens: DesignTokens): CSSProperties 
     fontStretch: `${Math.round(75 + tokens.font_width * 50)}%`,
     fontOpticalSizing: "auto",
   } as CSSProperties
+}
+
+type OklchColor = {
+  lightness: number
+  chroma: number
+  hue: number
+}
+
+function normalizeSpacing(spacing: number): number {
+  if (spacing < 0.25) {
+    return Math.max(0.18, spacing)
+  }
+
+  if (spacing < 0.36) {
+    return 0.25 + (spacing - 0.25) * 0.75
+  }
+
+  return Math.min(0.5, 0.3325 + (spacing - 0.36) * 0.45)
+}
+
+function ensureContrastColor(color: OklchColor, backgroundLightness: number, backgroundChroma: number, backgroundHue: number): OklchColor {
+  const backgroundLuminance = oklchToRelativeLuminance(backgroundLightness, backgroundChroma, backgroundHue)
+  const minContrast = 3
+
+  if (contrastRatio(backgroundLuminance, oklchToRelativeLuminance(color.lightness, color.chroma, color.hue)) >= minContrast) {
+    return color
+  }
+
+  const shouldDarken = backgroundLightness >= 0.5
+  let best = color
+
+  for (let step = 0; step <= 24; step += 1) {
+    const lightness = shouldDarken
+      ? Math.max(0.18, color.lightness - step * 0.025)
+      : Math.min(0.86, color.lightness + step * 0.025)
+    const candidate = { ...color, lightness }
+    const contrast = contrastRatio(backgroundLuminance, oklchToRelativeLuminance(lightness, color.chroma, color.hue))
+
+    best = candidate
+
+    if (contrast >= minContrast) {
+      return candidate
+    }
+  }
+
+  return best
+}
+
+function pickLineColorForSurface(
+  surfaceLightness: number,
+  hue: number,
+  strength: "soft" | "subtle" | "medium" | "strong"
+): string {
+  const lightnessByStrength = {
+    soft: surfaceLightness >= 0.5 ? 0.62 : 0.56,
+    subtle: surfaceLightness >= 0.5 ? 0.52 : 0.66,
+    medium: surfaceLightness >= 0.5 ? 0.38 : 0.78,
+    strong: surfaceLightness >= 0.5 ? 0.24 : 0.9,
+  } as const
+
+  return formatOklch(lightnessByStrength[strength], 0.025, hue)
 }
 
 export function pickFontFamily(tokens: Pick<DesignTokens, "font_style" | "font_serif" | "font_mono" | "font_display" | "font_rounded" | "font_contrast">): string {
