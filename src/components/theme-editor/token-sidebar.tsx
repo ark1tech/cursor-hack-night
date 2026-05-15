@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
 import type { TokenName, TokenState, ThemeMode } from "@/lib/tokens/default-theme";
 import {
   getTokenGroups,
@@ -74,22 +74,7 @@ export function TokenSidebar({
     return filteredTokens.some((token) => token.group === group.id);
   });
   const openGroups = groups.map((group) => group.id);
-  const [accordionValue, setAccordionValue] = useState<string[]>(openGroups);
-
-  useEffect(() => {
-    setAccordionValue((currentValue) => {
-      const visibleGroups = new Set(openGroups);
-      const preservedOpenGroups = currentValue.filter((groupId) => visibleGroups.has(groupId));
-      const newlyVisibleGroups = openGroups.filter((groupId) => !currentValue.includes(groupId));
-      const nextValue = [...preservedOpenGroups, ...newlyVisibleGroups];
-
-      if (nextValue.length === currentValue.length && nextValue.every((groupId, index) => groupId === currentValue[index])) {
-        return currentValue;
-      }
-
-      return nextValue;
-    });
-  }, [openGroups]);
+  const accordionKey = openGroups.join("|");
 
   function handleSearchChange(event: ChangeEvent<HTMLInputElement>): void {
     onSearchQueryChange(event.target.value);
@@ -126,12 +111,7 @@ export function TokenSidebar({
 
         <ScrollArea className="min-h-0 flex-1">
           <div className="p-3">
-            <Accordion
-              multiple
-              value={accordionValue}
-              onValueChange={(value) => setAccordionValue(value)}
-              className="gap-1"
-            >
+            <Accordion key={accordionKey} multiple defaultValue={openGroups} className="gap-1">
               {groups.map((group) => (
                 <AccordionItem key={group.id} value={group.id}>
                   <AccordionTrigger className="px-2">
