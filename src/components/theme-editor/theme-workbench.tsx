@@ -1,0 +1,180 @@
+"use client";
+
+import type { CSSProperties } from "react";
+import { useMemo, useState } from "react";
+import { FrameIcon, RotateCcwIcon, SaveIcon, SparklesIcon } from "lucide-react";
+import {
+  createDefaultTokenState,
+  type ThemeMode,
+  type TokenName,
+  type TokenState,
+} from "@/lib/tokens/default-theme";
+import {
+  computePreviewCssVars,
+  isDefaultTokenState,
+  resetTokenState,
+  serializeThemeCss,
+  updateTokenValue,
+} from "@/lib/tokens/css";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExportDialog } from "./export-dialog";
+import { PreviewCanvas } from "./preview-canvas";
+import { TokenSidebar, type TokenRailId } from "./token-sidebar";
+
+type AppTabId = "theme" | "hypertweak" | "tweak-ai";
+
+const APP_TABS = [
+  { id: "theme", label: "Theme" },
+  { id: "hypertweak", label: "Hypertweak" },
+  { id: "tweak-ai", label: "Tweak AI" },
+] as const satisfies readonly Readonly<{ id: AppTabId; label: string }>[];
+
+export function ThemeWorkbench() {
+  const [activeTab, setActiveTab] = useState<AppTabId>("theme");
+  const [activeRail, setActiveRail] = useState<TokenRailId>("colors");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mode, setMode] = useState<ThemeMode>("light");
+  const [tokenState, setTokenState] = useState<TokenState>(() => createDefaultTokenState());
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const previewStyle = useMemo(() => createPreviewStyle(tokenState, mode), [tokenState, mode]);
+  const exportedCss = useMemo(() => serializeThemeCss(tokenState), [tokenState]);
+  const hasChanges = !isDefaultTokenState(tokenState);
+
+  function handleAppTabChange(value: string | number | null): void {
+    if (!isAppTabId(value)) {
+      throw new Error(`Unknown app tab "${String(value)}".`);
+    }
+
+    setActiveTab(value);
+  }
+
+  function handleTokenChange(tokenName: TokenName, value: string): void {
+    try {
+      const nextTokenState = updateTokenValue(tokenState, tokenName, mode, value);
+      setTokenState(nextTokenState);
+      setErrorMessage(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setErrorMessage(message);
+    }
+  }
+
+  function handleResetClick(): void {
+    setTokenState(resetTokenState());
+    setErrorMessage(null);
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <header className="flex flex-col gap-3 border-b px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <SparklesIcon />
+          </div>
+          <div>
+            <div className="text-lg font-semibold tracking-tight">tweakcn</div>
+            <div className="text-xs text-muted-foreground">Theme tokens for shadcn/ui</div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" size="sm">
+            Get Pro
+          </Button>
+          <Button variant="outline" size="sm">
+            <FrameIcon data-icon="inline-start" />
+            Export to Figma
+          </Button>
+          <Button variant="outline" size="sm">
+            <SaveIcon data-icon="inline-start" />
+            Save
+          </Button>
+          <ExportDialog css={exportedCss} />
+        </div>
+      </header>
+
+      <Tabs value={activeTab} onValueChange={handleAppTabChange} className="min-h-0 flex-1 gap-0">
+        <div className="flex items-center justify-between border-b px-4 py-2">
+          <TabsList>
+            {APP_TABS.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.id}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <Button variant="ghost" size="sm" disabled={!hasChanges} onClick={handleResetClick}>
+            <RotateCcwIcon data-icon="inline-start" />
+            Reset
+          </Button>
+        </div>
+
+        <TabsContent value="theme" className="min-h-0">
+          <div className="flex min-h-[calc(100vh-121px)] flex-col lg:flex-row">
+            <TokenSidebar
+              tokenState={tokenState}
+              mode={mode}
+              activeRail={activeRail}
+              searchQuery={searchQuery}
+              onRailChange={setActiveRail}
+              onSearchQueryChange={setSearchQuery}
+              onTokenChange={handleTokenChange}
+            />
+            <div className="flex min-h-0 flex-1 flex-col">
+              {errorMessage ? (
+                <div className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive">{errorMessage}</div>
+              ) : null}
+              <PreviewCanvas mode={mode} previewStyle={previewStyle} onModeChange={setMode} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="hypertweak" className="min-h-0">
+          <ComingSoonTab
+            title="Hypertweak is coming soon"
+            description="This tab is reserved for deeper theme transformations and variant generation after the MVP token editor lands."
+          />
+        </TabsContent>
+        <TabsContent value="tweak-ai" className="min-h-0">
+          <ComingSoonTab
+            title="Tweak AI is coming soon"
+            description="This tab will host prompt-driven theme generation. The MVP keeps AI surfaces empty while the editor stays fully functional."
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function ComingSoonTab({
+  title,
+  description,
+}: Readonly<{
+  title: string;
+  description: string;
+}>) {
+  return (
+    <div className="flex min-h-[calc(100vh-121px)] p-6">
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <SparklesIcon />
+          </EmptyMedia>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
+        </EmptyHeader>
+        <Separator className="max-w-sm" />
+      </Empty>
+    </div>
+  );
+}
+
+function createPreviewStyle(tokenState: TokenState, mode: ThemeMode): CSSProperties {
+  return { ...computePreviewCssVars(tokenState, mode) } as CSSProperties;
+}
+
+function isAppTabId(value: string | number | null): value is AppTabId {
+  return typeof value === "string" && APP_TABS.some((tab) => tab.id === value);
+}
