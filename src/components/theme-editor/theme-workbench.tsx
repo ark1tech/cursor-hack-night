@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportDialog } from "./export-dialog";
 import { PreviewCanvas } from "./preview-canvas";
 import { TokenSidebar, type TokenRailId } from "./token-sidebar";
+import { TweakAiTab } from "./tweak-ai-tab";
 
 type AppTabId = "theme" | "hypertweak" | "tweak-ai";
 
@@ -138,9 +139,12 @@ export function ThemeWorkbench() {
           />
         </TabsContent>
         <TabsContent value="tweak-ai" className="min-h-0">
-          <ComingSoonTab
-            title="Tweak AI is coming soon"
-            description="This tab will host prompt-driven theme generation. The MVP keeps AI surfaces empty while the editor stays fully functional."
+          <TweakAiTab
+            tokenState={tokenState}
+            onApply={(next) => {
+              setTokenState(next);
+              setErrorMessage(null);
+            }}
           />
         </TabsContent>
       </Tabs>
