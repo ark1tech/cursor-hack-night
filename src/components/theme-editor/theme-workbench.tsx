@@ -76,7 +76,7 @@ export function ThemeWorkbench() {
             <SparklesIcon />
           </div>
           <div>
-            <div className="text-lg font-semibold tracking-tight">tweakcn</div>
+            <div className="text-lg font-semibold tracking-tight">TWEAK SEVEN</div>
             <div className="text-xs text-muted-foreground">Theme tokens for shadcn/ui</div>
           </div>
         </div>
