@@ -21,6 +21,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportDialog } from "./export-dialog";
+import { HypertweakPanel } from "./hypertweak-panel";
 import { PreviewCanvas } from "./preview-canvas";
 import { TokenSidebar, type TokenRailId } from "./token-sidebar";
 import { TweakAiTab } from "./tweak-ai-tab";
@@ -39,6 +40,7 @@ export function ThemeWorkbench() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mode, setMode] = useState<ThemeMode>("light");
   const [tokenState, setTokenState] = useState<TokenState>(() => createDefaultTokenState());
+  const [hypertweakPreviewStyle, setHypertweakPreviewStyle] = useState<CSSProperties>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const previewStyle = useMemo(() => createPreviewStyle(tokenState, mode), [tokenState, mode]);
@@ -133,10 +135,10 @@ export function ThemeWorkbench() {
         </TabsContent>
 
         <TabsContent value="hypertweak" className="min-h-0">
-          <ComingSoonTab
-            title="Hypertweak is coming soon"
-            description="This tab is reserved for deeper theme transformations and variant generation after the MVP token editor lands."
-          />
+          <div className="flex min-h-[calc(100vh-121px)] flex-col xl:flex-row">
+            <HypertweakPanel onPreviewStyleChange={setHypertweakPreviewStyle} />
+            <PreviewCanvas mode={mode} previewStyle={hypertweakPreviewStyle} onModeChange={setMode} />
+          </div>
         </TabsContent>
         <TabsContent value="tweak-ai" className="min-h-0">
           <TweakAiTab
