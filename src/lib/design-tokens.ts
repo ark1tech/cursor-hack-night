@@ -163,31 +163,43 @@ export function formatOklch(lightness: number, chroma: number, hue: number): str
   return `oklch(${lightness.toFixed(3)} ${chroma.toFixed(3)} ${hue.toFixed(1)})`
 }
 
+const INK_DARK = "oklch(0.145 0 0)"
+const INK_LIGHT = "oklch(0.985 0 0)"
+const MUTED_INK_ON_LIGHT_SURFACE = "oklch(0.45 0.02 260)"
+const MUTED_INK_ON_DARK_SURFACE = "oklch(0.78 0.02 260)"
+
 export function designTokensToPreviewStyle(tokens: DesignTokens): CSSProperties {
   const background = formatOklch(tokens.bg_l, tokens.bg_c, tokens.bg_h)
   const primary = formatOklch(tokens.primary_l, tokens.primary_c, tokens.primary_h)
-  const foreground = tokens.bg_l > 0.62 ? "oklch(0.145 0 0)" : "oklch(0.985 0 0)"
-  const primaryForeground = tokens.primary_l > 0.62 ? "oklch(0.145 0 0)" : "oklch(0.985 0 0)"
   const cardLightness = Math.min(0.99, Math.max(0.08, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.035 : 0.055)))
-  const card = formatOklch(cardLightness, tokens.bg_c * 0.75, tokens.bg_h)
-  const muted = formatOklch(Math.min(0.96, Math.max(0.12, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.08 : 0.1))), tokens.bg_c * 0.5, tokens.bg_h)
+  const cardChroma = tokens.bg_c * 0.75
+  const card = formatOklch(cardLightness, cardChroma, tokens.bg_h)
+  const mutedLightness = Math.min(0.96, Math.max(0.12, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.08 : 0.1)))
+  const mutedChroma = tokens.bg_c * 0.5
+  const muted = formatOklch(mutedLightness, mutedChroma, tokens.bg_h)
   const border = formatOklch(Math.min(0.92, Math.max(0.22, tokens.bg_l + (tokens.bg_l > 0.55 ? -0.14 : 0.16))), tokens.bg_c * 0.35, tokens.bg_h)
+
+  const foreground = pickInkForSurface(tokens.bg_l, tokens.bg_c, tokens.bg_h)
+  const cardForeground = pickInkForSurface(cardLightness, cardChroma, tokens.bg_h)
+  const secondaryForeground = pickInkForSurface(mutedLightness, mutedChroma, tokens.bg_h)
+  const primaryForeground = pickInkForSurface(tokens.primary_l, tokens.primary_c, tokens.primary_h)
+  const mutedForeground = pickMutedForegroundForSurface(mutedLightness, mutedChroma, tokens.bg_h)
 
   return {
     "--background": background,
     "--foreground": foreground,
     "--card": card,
-    "--card-foreground": foreground,
+    "--card-foreground": cardForeground,
     "--popover": card,
-    "--popover-foreground": foreground,
+    "--popover-foreground": cardForeground,
     "--primary": primary,
     "--primary-foreground": primaryForeground,
     "--secondary": muted,
-    "--secondary-foreground": foreground,
+    "--secondary-foreground": secondaryForeground,
     "--muted": muted,
-    "--muted-foreground": tokens.bg_l > 0.62 ? "oklch(0.45 0.02 260)" : "oklch(0.78 0.02 260)",
+    "--muted-foreground": mutedForeground,
     "--accent": muted,
-    "--accent-foreground": foreground,
+    "--accent-foreground": secondaryForeground,
     "--border": border,
     "--input": border,
     "--ring": primary,
@@ -235,6 +247,95 @@ export function pickFontFamily(tokens: Pick<DesignTokens, "font_style" | "font_s
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
+}
+
+function pickInkForSurface(lightness: number, chroma: number, hue: number): string {
+  const surfaceLuminance = oklchToRelativeLuminance(lightness, chroma, hue)
+  const darkContrast = contrastRatio(surfaceLuminance, oklchToRelativeLuminance(0.145, 0, 0))
+  const lightContrast = contrastRatio(surfaceLuminance, oklchToRelativeLuminance(0.985, 0, 0))
+
+  return lightContrast >= darkContrast ? INK_LIGHT : INK_DARK
+}
+
+function pickMutedForegroundForSurface(lightness: number, chroma: number, hue: number): string {
+  const ink = pickInkForSurface(lightness, chroma, hue)
+  const preferred = ink === INK_LIGHT ? MUTED_INK_ON_DARK_SURFACE : MUTED_INK_ON_LIGHT_SURFACE
+  const preferredLuminance = oklchStringToRelativeLuminance(preferred)
+  const surfaceLuminance = oklchToRelativeLuminance(lightness, chroma, hue)
+
+  if (contrastRatio(surfaceLuminance, preferredLuminance) >= 4.5) {
+    return preferred
+  }
+
+  const alternate = ink === INK_LIGHT ? MUTED_INK_ON_LIGHT_SURFACE : MUTED_INK_ON_DARK_SURFACE
+  const alternateLuminance = oklchStringToRelativeLuminance(alternate)
+
+  return contrastRatio(surfaceLuminance, alternateLuminance) > contrastRatio(surfaceLuminance, preferredLuminance)
+    ? alternate
+    : preferred
+}
+
+function oklchStringToRelativeLuminance(oklch: string): number {
+  const match = /oklch\(\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\)/i.exec(oklch)
+
+  if (!match) {
+    return 0
+  }
+
+  return oklchToRelativeLuminance(Number(match[1]), Number(match[2]), Number(match[3]))
+}
+
+function oklchToRelativeLuminance(lightness: number, chroma: number, hue: number): number {
+  const hueRadians = (hue * Math.PI) / 180
+  const a = chroma * Math.cos(hueRadians)
+  const b = chroma * Math.sin(hueRadians)
+  const [linearRed, linearGreen, linearBlue] = oklabToLinearSrgb(lightness, a, b)
+
+  return linearRgbToRelativeLuminance(linearRed, linearGreen, linearBlue)
+}
+
+function oklabToLinearSrgb(lightness: number, a: number, b: number): [number, number, number] {
+  const l = lightness + 0.3963377774 * a + 0.2158037573 * b
+  const m = lightness - 0.1055613458 * a - 0.0638541728 * b
+  const s = lightness - 0.0894841775 * a - 1.291485548 * b
+  const l3 = l ** 3
+  const m3 = m ** 3
+  const s3 = s ** 3
+
+  return [
+    +4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3,
+    -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3,
+    -0.0041960863 * l3 - 0.7034186147 * m3 + 1.707614701 * s3,
+  ]
+}
+
+function linearRgbToRelativeLuminance(red: number, green: number, blue: number): number {
+  const toSrgbChannel = (channel: number) => {
+    const clamped = clampLinearRgb(channel)
+
+    if (clamped <= 0.0031308) {
+      return 12.92 * clamped
+    }
+
+    return 1.055 * clamped ** (1 / 2.4) - 0.055
+  }
+
+  const srgbRed = toSrgbChannel(red)
+  const srgbGreen = toSrgbChannel(green)
+  const srgbBlue = toSrgbChannel(blue)
+
+  return 0.2126 * srgbRed + 0.7152 * srgbGreen + 0.0722 * srgbBlue
+}
+
+function contrastRatio(luminanceA: number, luminanceB: number): number {
+  const lighter = Math.max(luminanceA, luminanceB)
+  const darker = Math.min(luminanceA, luminanceB)
+
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+function clampLinearRgb(channel: number): number {
+  return Math.min(1, Math.max(0, channel))
 }
 
 function interpolateHue(h1: number, h2: number, h3: number, h4: number, weights: Weights): number {
