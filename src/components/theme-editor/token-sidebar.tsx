@@ -81,13 +81,16 @@ export function TokenSidebar({
   }
 
   return (
-    <aside className="flex min-h-0 w-full border-r bg-sidebar text-sidebar-foreground lg:w-[360px]">
+    <aside className="tweak-chrome flex min-h-0 w-full border-r bg-sidebar text-sidebar-foreground lg:w-[360px]">
       <nav className="flex w-28 shrink-0 flex-col gap-1 border-r bg-sidebar p-2">
         {TOKEN_RAILS.map((rail) => (
           <Button
             key={rail.id}
             variant={activeRail === rail.id ? "secondary" : "ghost"}
-            className={cn("h-auto justify-start px-2 py-2 text-left", activeRail === rail.id && "bg-sidebar-accent")}
+            className={cn(
+              "h-auto justify-start px-2 py-2 text-left text-[0.8125rem] font-semibold tracking-tight",
+              activeRail === rail.id && "bg-sidebar-accent"
+            )}
             onClick={() => onRailChange(rail.id)}
           >
             {rail.label}
@@ -98,8 +101,9 @@ export function TokenSidebar({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-col gap-3 border-b p-3">
           <div>
-            <h2 className="text-sm font-semibold">{getRail(activeRail).label}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{getRail(activeRail).description}</p>
+            <p className="tweak-label text-muted-foreground">Editor rail</p>
+            <h2 className="tweak-display mt-1 text-xl font-semibold leading-tight">{getRail(activeRail).label}</h2>
+            <p className="tweak-copy mt-1 text-xs text-muted-foreground">{getRail(activeRail).description}</p>
           </div>
           <Input
             aria-label="Search tokens"
@@ -151,10 +155,10 @@ function GroupHeader({
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span className="flex items-center gap-2">
-        <span>{group.label}</span>
+        <span className="text-sm font-semibold tracking-tight">{group.label}</span>
         <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{count}</span>
       </span>
-      <span className="truncate text-xs font-normal text-muted-foreground">{group.description}</span>
+      <span className="tweak-copy truncate text-xs font-normal text-muted-foreground">{group.description}</span>
     </span>
   );
 }

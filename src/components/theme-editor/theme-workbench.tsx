@@ -70,15 +70,15 @@ export function ThemeWorkbench() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="flex flex-col gap-3 border-b px-4 py-3 md:flex-row md:items-center md:justify-between">
+    <div className="tweak-chrome flex min-h-screen flex-col bg-background text-foreground">
+      <header className="flex flex-col gap-4 border-b bg-background/95 px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <SparklesIcon />
           </div>
           <div>
-            <div className="text-lg font-semibold tracking-tight">TWEAK SEVEN</div>
-            <div className="text-xs text-muted-foreground">Theme tokens for shadcn/ui</div>
+            <div className="tweak-display text-2xl font-semibold leading-none">Tweak Seven</div>
+            <div className="tweak-label mt-1 text-muted-foreground">Theme tokens for shadcn/ui</div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -98,7 +98,7 @@ export function ThemeWorkbench() {
       </header>
 
       <Tabs value={activeTab} onValueChange={handleAppTabChange} className="min-h-0 flex-1 gap-0">
-        <div className="flex items-center justify-between border-b px-4 py-2">
+        <div className="flex items-center justify-between border-b bg-background/80 px-4 py-2.5 backdrop-blur">
           <TabsList>
             {APP_TABS.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id}>

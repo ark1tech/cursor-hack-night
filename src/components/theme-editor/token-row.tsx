@@ -19,8 +19,8 @@ export function TokenRow({ token, value, onTokenChange }: TokenRowProps) {
     <div className="flex flex-col gap-2 rounded-lg border bg-card/60 p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{token.label}</div>
-          <div className="truncate text-xs text-muted-foreground">--{token.name}</div>
+          <div className="truncate text-sm font-semibold tracking-tight">{token.label}</div>
+          <div className="truncate font-mono text-[0.6875rem] text-muted-foreground">--{token.name}</div>
         </div>
         {isColorLike ? (
           <div
