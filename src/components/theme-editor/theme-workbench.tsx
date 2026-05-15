@@ -17,8 +17,6 @@ import {
   updateTokenValue,
 } from "@/lib/tokens/css";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportDialog } from "./export-dialog";
 import { HypertweakPanel } from "./hypertweak-panel";
@@ -150,29 +148,6 @@ export function ThemeWorkbench() {
           />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function ComingSoonTab({
-  title,
-  description,
-}: Readonly<{
-  title: string;
-  description: string;
-}>) {
-  return (
-    <div className="flex min-h-[calc(100vh-121px)] p-6">
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <SparklesIcon />
-          </EmptyMedia>
-          <EmptyTitle>{title}</EmptyTitle>
-          <EmptyDescription>{description}</EmptyDescription>
-        </EmptyHeader>
-        <Separator className="max-w-sm" />
-      </Empty>
     </div>
   );
 }
