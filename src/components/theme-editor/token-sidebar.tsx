@@ -81,8 +81,13 @@ export function TokenSidebar({
       const visibleGroups = new Set(openGroups);
       const preservedOpenGroups = currentValue.filter((groupId) => visibleGroups.has(groupId));
       const newlyVisibleGroups = openGroups.filter((groupId) => !currentValue.includes(groupId));
+      const nextValue = [...preservedOpenGroups, ...newlyVisibleGroups];
 
-      return [...preservedOpenGroups, ...newlyVisibleGroups];
+      if (nextValue.length === currentValue.length && nextValue.every((groupId, index) => groupId === currentValue[index])) {
+        return currentValue;
+      }
+
+      return nextValue;
     });
   }, [openGroups]);
 
