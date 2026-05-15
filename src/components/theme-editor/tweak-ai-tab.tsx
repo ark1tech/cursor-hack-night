@@ -15,7 +15,7 @@ import { generateDesignMd } from "@/lib/ai/design-md";
 import type { GrillQuestionResult, QaEntry, ThemePatchResult } from "@/lib/ai/types";
 import { MAX_GRILL_QUESTIONS } from "@/lib/ai/types";
 import type { ThemeMode, TokenState } from "@/lib/tokens/default-theme";
-import { computePreviewCssVars, serializeThemeCss } from "@/lib/tokens/css";
+import { computePreviewCssVars } from "@/lib/tokens/css";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,8 +27,6 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { PreviewCanvas } from "./preview-canvas";
 
 type TweakAiPhase = "idle" | "questioning" | "generating" | "preview";
@@ -56,20 +54,6 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
     () => createPreviewStyle(previewState ?? tokenState, previewMode),
     [previewMode, previewState, tokenState],
   );
-
-  const changedTokenCount = useMemo(() => {
-    if (!patchResult) {
-      return 0;
-    }
-    const names = new Set<string>();
-    for (const scope of ["root", "dark"] as const) {
-      const patch = patchResult.tokenPatch[scope];
-      if (patch) {
-        Object.keys(patch).forEach((n) => names.add(n));
-      }
-    }
-    return names.size;
-  }, [patchResult]);
 
   const fetchQuestion = useCallback(
     async (prompt: string, history: QaEntry[], count: number): Promise<GrillQuestionResult> => {
@@ -234,11 +218,11 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
   }
 
   return (
-    <div className="tweak-chrome flex min-h-[calc(100vh-121px)] flex-col xl:flex-row">
-      <aside className="tweak-chrome flex min-h-0 w-full flex-col border-r bg-background xl:w-[420px]">
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
-          <Card>
-            <CardHeader>
+    <div className="tweak-chrome flex h-full min-h-0 min-w-0 flex-col overflow-hidden xl:flex-row">
+      <aside className="tweak-chrome flex h-[42%] min-h-0 w-full shrink-0 flex-col border-b bg-background xl:h-auto xl:w-[420px] xl:border-r xl:border-b-0">
+        <div className="flex min-h-0 flex-1 p-4">
+          <Card className="min-h-0 flex-1 gap-0">
+            <CardHeader className="shrink-0">
               <p className="tweak-label text-muted-foreground">Prompt workflow</p>
               <CardTitle className="tweak-display flex items-center gap-2 text-3xl leading-tight">
                 <Wand2Icon className="size-5" />
@@ -249,7 +233,7 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
                 questions, then proposes sparse token updates for light and dark modes.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="ai-prompt">Style prompt</Label>
                 <Textarea
@@ -297,7 +281,7 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
 
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
             </CardContent>
-            <CardFooter className="flex flex-wrap gap-2">
+            <CardFooter className="shrink-0 flex-wrap gap-2 border-t pt-4">
               {phase === "idle" ? (
                 <Button onClick={handleStart} disabled={!canStart}>
                   {loading ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
@@ -347,85 +331,11 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
               )}
             </CardFooter>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <p className="tweak-label text-muted-foreground">Live result</p>
-              <CardTitle className="tweak-display text-2xl leading-tight">Generated preview</CardTitle>
-              <CardDescription className="tweak-copy">
-                {phase === "preview" && patchResult
-                  ? patchResult.intentSummary
-                  : "Use the right panel to switch between component previews while Tweak AI works."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {phase === "preview" && patchResult ? (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">{changedTokenCount} tokens changed</Badge>
-                    <Badge variant="outline">{Math.round(patchResult.confidence * 100)}% confidence</Badge>
-                  </div>
-                  <Separator />
-                  <TokenPatchList patch={patchResult} />
-                  {previewState ? (
-                    <div className="mt-2">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">Generated CSS</p>
-                      <pre className="max-h-[280px] overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-[10px] leading-relaxed">
-                        {serializeThemeCss(previewState)}
-                      </pre>
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {phase === "generating"
-                    ? "Generating your token patch. The preview will update when it is ready."
-                    : "The right panel is showing the current theme until AI generates a new one."}
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </aside>
 
       <PreviewCanvas mode={previewMode} previewStyle={previewStyle} onModeChange={setPreviewMode} />
     </div>
-  );
-}
-
-function TokenPatchList({ patch }: Readonly<{ patch: ThemePatchResult }>) {
-  const entries: Array<{ scope: string; token: string; value: string; rationale: string }> = [];
-
-  for (const scope of ["root", "dark"] as const) {
-    const scopePatch = patch.tokenPatch[scope];
-    if (!scopePatch) {
-      continue;
-    }
-    for (const [token, value] of Object.entries(scopePatch)) {
-      entries.push({
-        scope: scope === "root" ? ":root" : ".dark",
-        token,
-        value,
-        rationale: patch.rationale[token] ?? "",
-      });
-    }
-  }
-
-  return (
-    <ul className="flex flex-col gap-2 text-xs">
-      {entries.map((e) => (
-        <li key={`${e.scope}-${e.token}`} className="rounded-md border px-3 py-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="font-mono text-[10px]">
-              {e.scope}
-            </Badge>
-            <span className="font-mono font-medium">--{e.token}</span>
-          </div>
-          <p className="mt-1 font-mono text-muted-foreground">{e.value}</p>
-          {e.rationale ? <p className="mt-1 text-foreground/80">{e.rationale}</p> : null}
-        </li>
-      ))}
-    </ul>
   );
 }
 

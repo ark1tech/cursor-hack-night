@@ -278,6 +278,7 @@ function formatChartTick(value: string | number): string {
 
 export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanvasProps) {
   const [scene, setScene] = useState<PreviewSceneId>("dashboard");
+  const previewFrameWidth = getPreviewFrameWidth(scene);
 
   function handleSceneChange(value: string | number | null): void {
     if (!isPreviewSceneId(value)) {
@@ -288,10 +289,10 @@ export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanva
   }
 
   return (
-    <section className="tweak-chrome flex min-h-0 flex-1 flex-col bg-muted/40">
-      <div className="flex flex-col gap-3 border-b bg-background/80 p-3 backdrop-blur md:flex-row md:items-center md:justify-between">
-        <Tabs value={scene} onValueChange={handleSceneChange}>
-          <TabsList className="flex-wrap justify-start">
+    <section className="tweak-chrome flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-muted/40">
+      <div className="flex shrink-0 flex-col gap-3 border-b bg-background/80 p-3 backdrop-blur md:flex-row md:items-center md:justify-between">
+        <Tabs value={scene} onValueChange={handleSceneChange} className="min-w-0 flex-1">
+          <TabsList className="max-w-full justify-start overflow-x-auto">
             {PREVIEW_SCENES.map((previewScene) => (
               <TabsTrigger key={previewScene.id} value={previewScene.id}>
                 {previewScene.label}
@@ -299,7 +300,7 @@ export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanva
             ))}
           </TabsList>
         </Tabs>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Button variant={mode === "light" ? "secondary" : "outline"} size="sm" onClick={() => onModeChange("light")}>
             <SunIcon data-icon="inline-start" />
             Light
@@ -311,8 +312,11 @@ export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanva
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4 md:p-6">
-        <div className="mx-auto max-w-6xl rounded-2xl border bg-background p-4 shadow-sm md:p-6">
+      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto overscroll-contain p-4 md:p-6">
+        <div
+          className="mx-auto rounded-2xl border bg-background p-4 shadow-sm md:p-6"
+          style={{ width: previewFrameWidth, minWidth: previewFrameWidth }}
+        >
           <div className={mode === "dark" ? "dark" : ""} style={previewStyle}>
             <div
               className="min-h-[720px] rounded-xl border bg-background p-4 text-foreground shadow-xs md:p-6"
@@ -332,6 +336,18 @@ export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanva
   );
 }
 
+function getPreviewFrameWidth(scene: PreviewSceneId): string {
+  if (scene === "cards") {
+    return "1180px";
+  }
+
+  if (isDashboardScene(scene)) {
+    return "1120px";
+  }
+
+  return "100%";
+}
+
 function DashboardPreview() {
   return (
     <div className="flex flex-col gap-4">
@@ -340,7 +356,7 @@ function DashboardPreview() {
           <h2 className="text-2xl font-semibold">Dashboard</h2>
           <p className="text-sm text-muted-foreground">Full components, charts, forms, and tables using the edited tokens.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Button variant="outline" size="sm">
             <DownloadIcon data-icon="inline-start" />
             Download
@@ -349,22 +365,22 @@ function DashboardPreview() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_0.7fr_0.7fr]">
+      <div className="grid grid-cols-[1fr_1fr_0.7fr_0.7fr] gap-4">
         <RevenueMetricCard />
         <SubscriptionsAreaCard />
         <CalendarCard />
         <MoveGoalCard />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid grid-cols-[1.15fr_0.85fr] gap-4">
         <ExerciseMinutesCard />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4">
           <UpgradeSubscriptionCard />
           <CreateAccountCard />
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid grid-cols-[1.2fr_0.8fr] gap-4">
         <PaymentsCard />
         <SupportCard />
       </div>
@@ -380,7 +396,7 @@ function CardsPreview() {
         <p className="text-sm text-muted-foreground">A dense gallery for validating color, radius, spacing, fonts, controls, and charts.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-4 gap-4">
         <div className="flex flex-col gap-4">
           <PaletteCard />
           <TypographySampleCard />

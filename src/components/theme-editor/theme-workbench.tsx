@@ -70,84 +70,86 @@ export function ThemeWorkbench() {
   }
 
   return (
-    <div className="tweak-chrome flex min-h-screen flex-col bg-background text-foreground">
-      <header className="flex flex-col gap-4 border-b bg-background/95 px-4 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <SparklesIcon />
-          </div>
-          <div>
-            <div className="tweak-display text-2xl font-semibold leading-none">Tweak Seven</div>
-            <div className="tweak-label mt-1 text-muted-foreground">Theme tokens for shadcn/ui</div>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" size="sm">
-            Get Pro
-          </Button>
-          <Button variant="outline" size="sm">
-            <FrameIcon data-icon="inline-start" />
-            Export to Figma
-          </Button>
-          <Button variant="outline" size="sm">
-            <SaveIcon data-icon="inline-start" />
-            Save
-          </Button>
-          <ExportDialog css={exportedCss} />
-        </div>
-      </header>
-
-      <Tabs value={activeTab} onValueChange={handleAppTabChange} className="min-h-0 flex-1 gap-0">
-        <div className="flex items-center justify-between border-b bg-background/80 px-4 py-2.5 backdrop-blur">
-          <TabsList>
-            {APP_TABS.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <Button variant="ghost" size="sm" disabled={!hasChanges} onClick={handleResetClick}>
-            <RotateCcwIcon data-icon="inline-start" />
-            Reset
-          </Button>
-        </div>
-
-        <TabsContent value="theme" className="min-h-0">
-          <div className="flex min-h-[calc(100vh-121px)] flex-col lg:flex-row">
-            <TokenSidebar
-              tokenState={tokenState}
-              mode={mode}
-              activeRail={activeRail}
-              searchQuery={searchQuery}
-              onRailChange={setActiveRail}
-              onSearchQueryChange={setSearchQuery}
-              onTokenChange={handleTokenChange}
-            />
-            <div className="flex min-h-0 flex-1 flex-col">
-              {errorMessage ? (
-                <div className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive">{errorMessage}</div>
-              ) : null}
-              <PreviewCanvas mode={mode} previewStyle={previewStyle} onModeChange={setMode} />
+    <div className="tweak-chrome flex h-screen w-full overflow-hidden bg-background text-foreground">
+      <div className="flex min-h-0 w-full flex-col">
+        <header className="flex shrink-0 flex-col gap-4 border-b bg-background/95 px-4 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <SparklesIcon />
+            </div>
+            <div>
+              <div className="tweak-display text-2xl font-semibold leading-none">Tweak Seven</div>
+              <div className="tweak-label mt-1 text-muted-foreground">Theme tokens for shadcn/ui</div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="hypertweak" className="min-h-0">
-          <div className="flex min-h-[calc(100vh-121px)] flex-col xl:flex-row">
-            <HypertweakPanel onPreviewStyleChange={setHypertweakPreviewStyle} />
-            <PreviewCanvas mode={mode} previewStyle={hypertweakPreviewStyle} onModeChange={setMode} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" size="sm">
+              Get Pro
+            </Button>
+            <Button variant="outline" size="sm">
+              <FrameIcon data-icon="inline-start" />
+              Export to Figma
+            </Button>
+            <Button variant="outline" size="sm">
+              <SaveIcon data-icon="inline-start" />
+              Save
+            </Button>
+            <ExportDialog css={exportedCss} />
           </div>
-        </TabsContent>
-        <TabsContent value="tweak-ai" className="min-h-0">
-          <TweakAiTab
-            tokenState={tokenState}
-            onApply={(next) => {
-              setTokenState(next);
-              setErrorMessage(null);
-            }}
-          />
-        </TabsContent>
-      </Tabs>
+        </header>
+
+        <Tabs value={activeTab} onValueChange={handleAppTabChange} className="min-h-0 flex-1 gap-0 overflow-hidden">
+          <div className="flex shrink-0 items-center justify-between border-b bg-background/80 px-4 py-2.5 backdrop-blur">
+            <TabsList>
+              {APP_TABS.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <Button variant="ghost" size="sm" disabled={!hasChanges} onClick={handleResetClick}>
+              <RotateCcwIcon data-icon="inline-start" />
+              Reset
+            </Button>
+          </div>
+
+          <TabsContent value="theme" className="min-h-0 overflow-hidden">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden lg:flex-row">
+              <TokenSidebar
+                tokenState={tokenState}
+                mode={mode}
+                activeRail={activeRail}
+                searchQuery={searchQuery}
+                onRailChange={setActiveRail}
+                onSearchQueryChange={setSearchQuery}
+                onTokenChange={handleTokenChange}
+              />
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                {errorMessage ? (
+                  <div className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive">{errorMessage}</div>
+                ) : null}
+                <PreviewCanvas mode={mode} previewStyle={previewStyle} onModeChange={setMode} />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="hypertweak" className="min-h-0 overflow-hidden">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden xl:flex-row">
+              <HypertweakPanel onPreviewStyleChange={setHypertweakPreviewStyle} />
+              <PreviewCanvas mode={mode} previewStyle={hypertweakPreviewStyle} onModeChange={setMode} />
+            </div>
+          </TabsContent>
+          <TabsContent value="tweak-ai" className="min-h-0 overflow-hidden">
+            <TweakAiTab
+              tokenState={tokenState}
+              onApply={(next) => {
+                setTokenState(next);
+                setErrorMessage(null);
+              }}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

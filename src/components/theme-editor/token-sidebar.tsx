@@ -81,7 +81,7 @@ export function TokenSidebar({
   }
 
   return (
-    <aside className="tweak-chrome flex min-h-0 w-full border-r bg-sidebar text-sidebar-foreground lg:w-[360px]">
+    <aside className="tweak-chrome flex h-[42%] min-h-0 w-full shrink-0 border-b bg-sidebar text-sidebar-foreground lg:h-auto lg:w-[360px] lg:border-r lg:border-b-0">
       <nav className="flex w-28 shrink-0 flex-col gap-1 border-r bg-sidebar p-2">
         {TOKEN_RAILS.map((rail) => (
           <Button

@@ -24,7 +24,7 @@ type ChatCompletionResponse = Readonly<{
 }>;
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_MODEL = "openai/gpt-4o";
 
 export async function askGrillQuestion(
   userPrompt: string,

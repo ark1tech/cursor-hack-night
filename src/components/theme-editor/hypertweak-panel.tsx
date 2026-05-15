@@ -119,7 +119,7 @@ export function HypertweakPanel({ onPreviewStyleChange }: HypertweakPanelProps) 
   }
 
   return (
-    <aside className="tweak-chrome flex min-h-0 w-full flex-col border-r bg-background xl:w-[420px]">
+    <aside className="tweak-chrome flex h-[42%] min-h-0 w-full shrink-0 flex-col border-b bg-background xl:h-auto xl:w-[420px] xl:border-r xl:border-b-0">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
         <div className="flex flex-col gap-2">
           <div className="tweak-label flex items-center gap-2 text-primary">
