@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
   ArrowRightIcon,
@@ -13,8 +14,8 @@ import { applyThemePatchResult } from "@/lib/ai/apply-patch";
 import { generateDesignMd } from "@/lib/ai/design-md";
 import type { GrillQuestionResult, QaEntry, ThemePatchResult } from "@/lib/ai/types";
 import { MAX_GRILL_QUESTIONS } from "@/lib/ai/types";
-import type { TokenState } from "@/lib/tokens/default-theme";
-import { serializeThemeCss } from "@/lib/tokens/css";
+import type { ThemeMode, TokenState } from "@/lib/tokens/default-theme";
+import { computePreviewCssVars, serializeThemeCss } from "@/lib/tokens/css";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { PreviewCanvas } from "./preview-canvas";
 
 type TweakAiPhase = "idle" | "questioning" | "generating" | "preview";
 
@@ -44,11 +46,16 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
   const [answerDraft, setAnswerDraft] = useState("");
   const [patchResult, setPatchResult] = useState<ThemePatchResult | null>(null);
   const [previewState, setPreviewState] = useState<TokenState | null>(null);
+  const [previewMode, setPreviewMode] = useState<ThemeMode>("light");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const questionCount = qaHistory.length;
   const canStart = userPrompt.trim().length > 0 && !loading;
+  const previewStyle = useMemo(
+    () => createPreviewStyle(previewState ?? tokenState, previewMode),
+    [previewMode, previewState, tokenState],
+  );
 
   const changedTokenCount = useMemo(() => {
     if (!patchResult) {
@@ -338,35 +345,40 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
         </CardFooter>
       </Card>
 
-      <Card className="min-h-[320px] flex-1">
+      <Card className="min-h-[320px] flex-1 overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-base">Preview</CardTitle>
+          <CardTitle className="text-base">Generated preview</CardTitle>
           <CardDescription>
             {phase === "preview" && patchResult
               ? patchResult.intentSummary
-              : "Token changes will appear here after generation."}
+              : "The generated theme will render as an actual component preview here."}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-4 p-0">
           {phase === "preview" && patchResult ? (
             <>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{changedTokenCount} tokens changed</Badge>
-                <Badge variant="outline">{Math.round(patchResult.confidence * 100)}% confidence</Badge>
+              <div className="min-h-[680px] border-y">
+                <PreviewCanvas mode={previewMode} previewStyle={previewStyle} onModeChange={setPreviewMode} />
               </div>
-              <Separator />
-              <TokenPatchList patch={patchResult} />
-              {previewState ? (
-                <div className="mt-2">
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Generated CSS</p>
-                  <pre className="max-h-[280px] overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-[10px] leading-relaxed">
-                    {serializeThemeCss(previewState)}
-                  </pre>
+              <div className="flex flex-col gap-4 p-6">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">{changedTokenCount} tokens changed</Badge>
+                  <Badge variant="outline">{Math.round(patchResult.confidence * 100)}% confidence</Badge>
                 </div>
-              ) : null}
+                <Separator />
+                <TokenPatchList patch={patchResult} />
+                {previewState ? (
+                  <div className="mt-2">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Generated CSS</p>
+                    <pre className="max-h-[280px] overflow-auto rounded-md border bg-muted/30 p-3 font-mono text-[10px] leading-relaxed">
+                      {serializeThemeCss(previewState)}
+                    </pre>
+                  </div>
+                ) : null}
+              </div>
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center py-16 text-sm text-muted-foreground">
+            <div className="flex min-h-[480px] flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
               {phase === "generating" ? "Generating your token patch..." : "Waiting for your style prompt."}
             </div>
           )}
@@ -410,6 +422,10 @@ function TokenPatchList({ patch }: Readonly<{ patch: ThemePatchResult }>) {
       ))}
     </ul>
   );
+}
+
+function createPreviewStyle(tokenState: TokenState, mode: ThemeMode): CSSProperties {
+  return { ...computePreviewCssVars(tokenState, mode) } as CSSProperties;
 }
 
 function downloadTextFile(filename: string, content: string): void {
