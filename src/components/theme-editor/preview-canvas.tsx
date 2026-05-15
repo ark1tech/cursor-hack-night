@@ -288,7 +288,7 @@ export function PreviewCanvas({ mode, previewStyle, onModeChange }: PreviewCanva
   }
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-muted/40">
+    <section className="tweak-chrome flex min-h-0 flex-1 flex-col bg-muted/40">
       <div className="flex flex-col gap-3 border-b bg-background/80 p-3 backdrop-blur md:flex-row md:items-center md:justify-between">
         <Tabs value={scene} onValueChange={handleSceneChange}>
           <TabsList className="flex-wrap justify-start">

@@ -234,14 +234,15 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-121px)] flex-col gap-6 p-6 lg:flex-row">
+    <div className="tweak-chrome flex min-h-[calc(100vh-121px)] flex-col gap-6 p-6 lg:flex-row">
       <Card className="w-full lg:max-w-md shrink-0">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <p className="tweak-label text-muted-foreground">Prompt workflow</p>
+          <CardTitle className="tweak-display flex items-center gap-2 text-3xl leading-tight">
             <Wand2Icon className="size-5" />
             Tweak AI
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="tweak-copy">
             Describe your desired style. The assistant asks up to {MAX_GRILL_QUESTIONS} focused
             questions, then proposes sparse token updates for light and dark modes.
           </CardDescription>
@@ -347,8 +348,9 @@ export function TweakAiTab({ tokenState, onApply }: TweakAiTabProps) {
 
       <Card className="min-h-[320px] flex-1 overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-base">Generated preview</CardTitle>
-          <CardDescription>
+          <p className="tweak-label text-muted-foreground">Live result</p>
+          <CardTitle className="tweak-display text-2xl leading-tight">Generated preview</CardTitle>
+          <CardDescription className="tweak-copy">
             {phase === "preview" && patchResult
               ? patchResult.intentSummary
               : "The generated theme will render as an actual component preview here."}

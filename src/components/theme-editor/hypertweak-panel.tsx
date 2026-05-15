@@ -119,16 +119,16 @@ export function HypertweakPanel({ onPreviewStyleChange }: HypertweakPanelProps) 
   }
 
   return (
-    <aside className="flex min-h-0 w-full flex-col border-r bg-background xl:w-[420px]">
+    <aside className="tweak-chrome flex min-h-0 w-full flex-col border-r bg-background xl:w-[420px]">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4">
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+          <div className="tweak-label flex items-center gap-2 text-primary">
             <SparklesIcon className="size-4" />
             hypertweak
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Interpolate four image references</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <h1 className="tweak-display text-3xl font-semibold leading-tight">Interpolate four image references</h1>
+            <p className="tweak-copy max-w-2xl text-sm text-muted-foreground">
               Upload four screenshots, let Gemini extract the corner tokens, then blend the design space locally with
               a real-time XY pad.
             </p>
