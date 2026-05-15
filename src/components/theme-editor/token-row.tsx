@@ -86,6 +86,8 @@ const SLIDER_CONFIGS = {
   spacing: { min: 0.125, max: 0.75, step: 0.025, unit: "rem" },
 } as const satisfies Partial<Record<TokenName, SliderConfig>>;
 
+type SliderTokenName = keyof typeof SLIDER_CONFIGS;
+
 export function TokenRow({ token, value, onTokenChange }: TokenRowProps) {
   const isColorLike = token.kind === "color" || token.name === "shadow-color";
 
@@ -110,7 +112,7 @@ export function TokenRow({ token, value, onTokenChange }: TokenRowProps) {
 }
 
 function TokenControl({ token, value, onTokenChange }: TokenRowProps) {
-  const sliderConfig = SLIDER_CONFIGS[token.name];
+  const sliderConfig = getSliderConfig(token.name);
 
   if (sliderConfig) {
     return (
@@ -195,6 +197,14 @@ function ColorControl({
       />
     </div>
   );
+}
+
+function getSliderConfig(tokenName: TokenName): SliderConfig | undefined {
+  if (tokenName in SLIDER_CONFIGS) {
+    return SLIDER_CONFIGS[tokenName as SliderTokenName];
+  }
+
+  return undefined;
 }
 
 function SelectControl({
