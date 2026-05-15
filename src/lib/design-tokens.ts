@@ -13,6 +13,14 @@ export const sampleCorners: [DesignTokens, DesignTokens, DesignTokens, DesignTok
     radius: 0.5,
     spacing: 0.24,
     font_style: 0,
+    font_serif: 0.05,
+    font_mono: 0.02,
+    font_display: 0.15,
+    font_rounded: 0.25,
+    font_contrast: 0.18,
+    font_width: 0.5,
+    font_size: 1,
+    line_height: 1.5,
     font_weight: 520,
     tracking: -0.01,
   },
@@ -26,6 +34,14 @@ export const sampleCorners: [DesignTokens, DesignTokens, DesignTokens, DesignTok
     radius: 1.25,
     spacing: 0.31,
     font_style: 1,
+    font_serif: 0.9,
+    font_mono: 0.02,
+    font_display: 0.45,
+    font_rounded: 0.05,
+    font_contrast: 0.82,
+    font_width: 0.55,
+    font_size: 1.05,
+    line_height: 1.62,
     font_weight: 420,
     tracking: 0.01,
   },
@@ -39,6 +55,14 @@ export const sampleCorners: [DesignTokens, DesignTokens, DesignTokens, DesignTok
     radius: 0.125,
     spacing: 0.2,
     font_style: 2,
+    font_serif: 0.02,
+    font_mono: 0.9,
+    font_display: 0.1,
+    font_rounded: 0.05,
+    font_contrast: 0.05,
+    font_width: 0.42,
+    font_size: 0.92,
+    line_height: 1.45,
     font_weight: 650,
     tracking: -0.025,
   },
@@ -52,6 +76,14 @@ export const sampleCorners: [DesignTokens, DesignTokens, DesignTokens, DesignTok
     radius: 2,
     spacing: 0.34,
     font_style: 0.5,
+    font_serif: 0.15,
+    font_mono: 0.04,
+    font_display: 0.75,
+    font_rounded: 0.85,
+    font_contrast: 0.28,
+    font_width: 0.72,
+    font_size: 1.08,
+    line_height: 1.35,
     font_weight: 760,
     tracking: 0.035,
   },
@@ -96,6 +128,32 @@ export function interpolateTokens(
     radius: lerp4(topLeft.radius, topRight.radius, bottomLeft.radius, bottomRight.radius, weights),
     spacing: lerp4(topLeft.spacing, topRight.spacing, bottomLeft.spacing, bottomRight.spacing, weights),
     font_style: lerp4(topLeft.font_style, topRight.font_style, bottomLeft.font_style, bottomRight.font_style, weights),
+    font_serif: lerp4(topLeft.font_serif, topRight.font_serif, bottomLeft.font_serif, bottomRight.font_serif, weights),
+    font_mono: lerp4(topLeft.font_mono, topRight.font_mono, bottomLeft.font_mono, bottomRight.font_mono, weights),
+    font_display: lerp4(
+      topLeft.font_display,
+      topRight.font_display,
+      bottomLeft.font_display,
+      bottomRight.font_display,
+      weights
+    ),
+    font_rounded: lerp4(
+      topLeft.font_rounded,
+      topRight.font_rounded,
+      bottomLeft.font_rounded,
+      bottomRight.font_rounded,
+      weights
+    ),
+    font_contrast: lerp4(
+      topLeft.font_contrast,
+      topRight.font_contrast,
+      bottomLeft.font_contrast,
+      bottomRight.font_contrast,
+      weights
+    ),
+    font_width: lerp4(topLeft.font_width, topRight.font_width, bottomLeft.font_width, bottomRight.font_width, weights),
+    font_size: lerp4(topLeft.font_size, topRight.font_size, bottomLeft.font_size, bottomRight.font_size, weights),
+    line_height: lerp4(topLeft.line_height, topRight.line_height, bottomLeft.line_height, bottomRight.line_height, weights),
     font_weight: lerp4(topLeft.font_weight, topRight.font_weight, bottomLeft.font_weight, bottomRight.font_weight, weights),
     tracking: lerp4(topLeft.tracking, topRight.tracking, bottomLeft.tracking, bottomRight.tracking, weights),
   }
@@ -140,26 +198,39 @@ export function designTokensToPreviewStyle(tokens: DesignTokens): CSSProperties 
     "--chart-5": formatOklch(tokens.primary_l, tokens.primary_c * 0.45, (tokens.primary_h + 210) % 360),
     "--radius": `${tokens.radius.toFixed(3)}rem`,
     "--spacing": `${tokens.spacing.toFixed(3)}rem`,
-    "--font-sans": pickFontFamily(tokens.font_style),
+    "--font-sans": pickFontFamily(tokens),
+    "--font-serif": 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
     "--font-mono":
       'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     "--tracking-normal": `${tokens.tracking.toFixed(3)}em`,
-    fontFamily: pickFontFamily(tokens.font_style),
+    fontFamily: pickFontFamily(tokens),
+    fontSize: `${tokens.font_size.toFixed(3)}rem`,
     fontWeight: Math.round(tokens.font_weight),
     letterSpacing: `${tokens.tracking.toFixed(3)}em`,
+    lineHeight: tokens.line_height,
+    fontStretch: `${Math.round(75 + tokens.font_width * 50)}%`,
+    fontOpticalSizing: "auto",
   } as CSSProperties
 }
 
-export function pickFontFamily(fontStyle: number): string {
-  if (fontStyle < 0.67) {
-    return 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+export function pickFontFamily(tokens: Pick<DesignTokens, "font_style" | "font_serif" | "font_mono" | "font_display" | "font_rounded" | "font_contrast">): string {
+  if (tokens.font_mono >= 0.5 || tokens.font_style >= 1.65) {
+    return 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace'
   }
 
-  if (fontStyle < 1.34) {
+  if (tokens.font_serif >= 0.45 || tokens.font_contrast >= 0.7 || (tokens.font_style >= 0.75 && tokens.font_style < 1.65)) {
     return 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif'
   }
 
-  return 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+  if (tokens.font_rounded >= 0.55) {
+    return 'ui-rounded, "SF Pro Rounded", "Nunito", "Avenir Next Rounded", ui-sans-serif, system-ui, sans-serif'
+  }
+
+  if (tokens.font_display >= 0.65) {
+    return '"Arial Black", "Impact", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif'
+  }
+
+  return 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 }
 
 function clamp01(value: number): number {

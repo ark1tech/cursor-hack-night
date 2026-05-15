@@ -264,7 +264,15 @@ export function HypertweakPanel({ onPreviewStyleChange }: HypertweakPanelProps) 
                 <TokenRow label="Primary" value={primary} />
                 <TokenRow label="Radius" value={`${tokens.radius.toFixed(3)}rem`} />
                 <TokenRow label="Spacing" value={`${tokens.spacing.toFixed(3)}rem`} />
-                <TokenRow label="Font" value={formatFontLabel(tokens.font_style)} />
+                <TokenRow label="Font" value={formatFontLabel(tokens)} />
+                <TokenRow label="Serif" value={formatLikelihood(tokens.font_serif)} />
+                <TokenRow label="Mono" value={formatLikelihood(tokens.font_mono)} />
+                <TokenRow label="Display" value={formatLikelihood(tokens.font_display)} />
+                <TokenRow label="Rounded" value={formatLikelihood(tokens.font_rounded)} />
+                <TokenRow label="Contrast" value={formatLikelihood(tokens.font_contrast)} />
+                <TokenRow label="Width" value={formatLikelihood(tokens.font_width)} />
+                <TokenRow label="Size" value={`${tokens.font_size.toFixed(3)}rem`} />
+                <TokenRow label="Line height" value={tokens.line_height.toFixed(2)} />
                 <TokenRow label="Weight" value={Math.round(tokens.font_weight).toString()} />
                 <TokenRow label="Tracking" value={`${tokens.tracking.toFixed(3)}em`} />
               </dl>
@@ -321,6 +329,14 @@ function isDesignTokens(value: unknown): value is DesignTokens {
     "radius",
     "spacing",
     "font_style",
+    "font_serif",
+    "font_mono",
+    "font_display",
+    "font_rounded",
+    "font_contrast",
+    "font_width",
+    "font_size",
+    "line_height",
     "font_weight",
     "tracking",
   ].every(
@@ -328,8 +344,8 @@ function isDesignTokens(value: unknown): value is DesignTokens {
   )
 }
 
-function formatFontLabel(fontStyle: number): string {
-  const family = pickFontFamily(fontStyle)
+function formatFontLabel(tokens: DesignTokens): string {
+  const family = pickFontFamily(tokens)
 
   if (family.includes("ui-serif")) {
     return "Serif"
@@ -340,4 +356,8 @@ function formatFontLabel(fontStyle: number): string {
   }
 
   return "Sans"
+}
+
+function formatLikelihood(value: number): string {
+  return `${Math.round(value * 100)}%`
 }

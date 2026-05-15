@@ -7,7 +7,7 @@ export const runtime = "nodejs"
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash"
 
 const extractionPrompt =
-  "You are an expert design token extractor. Analyze the provided UI screenshot and reverse-engineer its design tokens. Extract the background color and the primary brand color in the OKLCH color space, separating the Lightness (0-1), Chroma (0-0.4), and Hue (0-360) into distinct numerical fields. Extract the base border-radius as a pure number representing rem units (e.g., 0.5 for 8px). Extract spacing as a rem number for a base spacing unit (usually 0.2 to 0.35). Extract typography as pure numbers: font_style where 0 means clean sans, 1 means editorial serif, and 2 means technical monospace; font_weight from 300 to 800; tracking in em units from -0.04 to 0.06. Output strictly matching the provided JSON schema."
+  "You are an expert design token extractor and typography analyst. Analyze the provided UI screenshot and reverse-engineer its design tokens. Extract colors in OKLCH with separate numeric Lightness (0-1), Chroma (0-0.4), and Hue (0-360). Extract radius and spacing as rem numbers. For typography, inspect headings, body text, buttons, labels, and nav text. Return blendable numeric font signals: font_style where 0=sans, 1=serif, 2=mono; font_serif, font_mono, font_display, and font_rounded as likelihoods from 0 to 1; font_contrast where 0=low-contrast grotesk/geometric and 1=high-contrast editorial; font_width where 0=condensed, 0.5=normal, 1=expanded; font_size as base body rem; line_height as a unitless ratio; font_weight from 300 to 800; tracking in em units from -0.04 to 0.06. Infer the dominant UI type system, not incidental logo text. Output strictly matching the provided JSON schema."
 
 const responseSchema = {
   type: "OBJECT",
@@ -21,6 +21,14 @@ const responseSchema = {
     radius: { type: "NUMBER", description: "Border radius in rem (e.g., 0.5)" },
     spacing: { type: "NUMBER", description: "Base spacing unit in rem (e.g., 0.25)" },
     font_style: { type: "NUMBER", description: "Typography style axis: 0 sans, 1 serif, 2 monospace" },
+    font_serif: { type: "NUMBER", description: "0 to 1 likelihood that the dominant UI font is serif" },
+    font_mono: { type: "NUMBER", description: "0 to 1 likelihood that the dominant UI font is monospace" },
+    font_display: { type: "NUMBER", description: "0 to 1 likelihood that the dominant UI font is expressive/display" },
+    font_rounded: { type: "NUMBER", description: "0 to 1 likelihood that the dominant UI font has rounded terminals" },
+    font_contrast: { type: "NUMBER", description: "0 to 1 stroke contrast, low grotesk to high editorial" },
+    font_width: { type: "NUMBER", description: "Width axis: 0 condensed, 0.5 normal, 1 expanded" },
+    font_size: { type: "NUMBER", description: "Base body font size in rem, usually 0.875 to 1.125" },
+    line_height: { type: "NUMBER", description: "Base line-height ratio, usually 1.2 to 1.7" },
     font_weight: { type: "NUMBER", description: "Base font weight from 300 to 800" },
     tracking: { type: "NUMBER", description: "Letter spacing in em units, e.g. -0.01" },
   },
@@ -34,6 +42,14 @@ const responseSchema = {
     "radius",
     "spacing",
     "font_style",
+    "font_serif",
+    "font_mono",
+    "font_display",
+    "font_rounded",
+    "font_contrast",
+    "font_width",
+    "font_size",
+    "line_height",
     "font_weight",
     "tracking",
   ],
@@ -49,6 +65,14 @@ const tokenKeys = [
   "radius",
   "spacing",
   "font_style",
+  "font_serif",
+  "font_mono",
+  "font_display",
+  "font_rounded",
+  "font_contrast",
+  "font_width",
+  "font_size",
+  "line_height",
   "font_weight",
   "tracking",
 ] as const

@@ -8,6 +8,14 @@ export type DesignTokens = {
   radius: number
   spacing: number
   font_style: number
+  font_serif: number
+  font_mono: number
+  font_display: number
+  font_rounded: number
+  font_contrast: number
+  font_width: number
+  font_size: number
+  line_height: number
   font_weight: number
   tracking: number
 }
